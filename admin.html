@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Painel — CódigoIA</title><link rel="stylesheet" href="style.css"></head>
+<body><header class="nav"><div class="container navin"><a class="brand" href="index.html">CÓDIGO<span>IA</span></a><nav class="links"><a href="index.html">Início</a><a href="catalog.html">Catálogo</a><a href="admin.html">Painel</a></nav></div></header>
+<main class="admin container">
+<div id="auth"><div class="sectionhead"><div><h1>Painel administrativo</h1><p>Publicação segura diretamente no repositório.</p></div></div><div class="notice"><strong>Área protegida.</strong> O token do GitHub nunca fica no navegador.</div><a class="btn" href="#" id="login">Entrar com GitHub</a></div>
+<div id="panel" hidden>
+<div class="sectionhead"><div><h1>Conteúdo</h1><p id="who"></p></div><div class="adminnav"><button class="btn secondary" id="new">Novo conteúdo</button><button class="btn secondary" id="logout">Sair</button></div></div>
+<form class="form" id="form">
+<input type="hidden" id="originalId">
+<div class="field"><label>ID</label><input id="id" readonly placeholder="Automático"></div>
+<div class="field"><label>Slug</label><input id="slug" placeholder="gerado automaticamente"></div>
+<div class="field"><label>Título *</label><input id="title" required></div>
+<div class="field"><label>Categoria *</label><input id="category" required></div>
+<div class="field"><label>Tags</label><input id="tags" placeholder="IA, automação, código"></div>
+<div class="field"><label>URL do recurso *</label><input id="url" type="url" required></div>
+<div class="field full"><label>Descrição</label><textarea id="description"></textarea></div>
+<div class="field"><label>Tipo</label><select id="type"><option>code</option><option>prompt</option><option>tool</option><option>automation</option><option>template</option><option>product</option></select></div>
+<div class="field"><label>Status</label><select id="status"><option>draft</option><option>published</option><option>archived</option></select></div>
+<div class="field"><label>Acesso</label><select id="access"><option>free</option><option>premium</option></select></div>
+<div class="field"><label>Tipo de link</label><select id="linkType"><option>normal</option><option>affiliate</option><option>sponsored</option></select></div>
+<div class="field"><label>Parceiro</label><input id="partner"></div><div class="field"><label>Campanha</label><input id="campaign"></div>
+<div class="field full"><label>Código</label><textarea id="code" placeholder="Cole o código aqui, se houver."></textarea></div>
+<div class="field full"><label>Prompt</label><textarea id="prompt" placeholder="Prompt reutilizável, se houver."></textarea></div>
+<div class="field full"><label>Imagem de capa</label><div class="dropzone"><input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp"><span class="muted">A imagem será redimensionada no navegador antes do envio.</span><img id="preview" class="preview" src="assets/default.svg" alt=""></div><input id="image" placeholder="ou URL de imagem"></div>
+<div class="field"><label>Data de publicação</label><input id="publishedAt" type="date"></div>
+<div class="field"><label><input id="featured" type="checkbox"> Destaque</label></div>
+<div class="field full"><div class="tools"><button class="btn secondary" type="button" id="generate">Gerar com IA</button><button class="btn secondary" type="button" id="post">Gerar post</button><button class="btn" type="button" id="publish">PUBLICAR</button><button class="btn danger" type="button" id="delete">Desativar</button></div></div>
+</form>
+<section class="section"><div class="sectionhead"><div><h2>Biblioteca</h2><p>Editar, publicar ou desativar conteúdos.</p></div></div><div class="tablewrap"><table class="admin-table"><thead><tr><th>ID</th><th>Título</th><th>Categoria</th><th>Status</th><th>Ações</th></tr></thead><tbody id="rows"></tbody></table></div></section>
+<section class="section"><div class="sectionhead"><div><h2>Post gerado</h2><p>Revise antes de publicar em uma rede social.</p></div></div><textarea id="social" style="width:100%;min-height:300px"></textarea></section>
+</div></main><div id="toast" class="toast" hidden></div>
+<script src="admin-config.js"></script><script>
+const API=(window.CODIGOIA_API_URL||'').replace(/\/$/,'');
+const $=s=>document.querySelector(s);let items=[];
+function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function toast(msg,ok=true){const t=$('#toast');t.textContent=msg;t.hidden=false;t.className='toast '+(ok?'success':'');setTimeout(()=>t.hidden=true,3500)}
+async function api(path,opt={}){const r=await fetch(API+path,{credentials:'include',...opt,headers:{'Content-Type':'application/json',...(opt.headers||{})}});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.error||`Erro ${r.status}`);return d}
+function slugify(s){return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80)}
+function clearForm(){['originalId','id','slug','title','category','tags','url','description','code','prompt','image','partner','campaign'].forEach(x=>$('#'+x).value='');$('#status').value='draft';$('#access').value='free';$('#linkType').value='normal';$('#featured').checked=false;$('#preview').src='assets/default.svg';$('#publishedAt').value=new Date().toISOString().slice(0,10);$('#social').value=''}
+function fill(c){$('#originalId').value=c.id;$('#id').value=c.id;$('#slug').value=c.slug||slugify(c.title);$('#title').value=c.title||'';$('#category').value=c.category||'';$('#tags').value=(c.tags||[]).join(', ');$('#url').value=c.url||'';$('#description').value=c.description||'';$('#type').value=c.type||'code';$('#status').value=c.status||'draft';$('#access').value=c.access||'free';$('#linkType').value=c.linkType||'normal';$('#partner').value=c.partner||'';$('#campaign').value=c.campaign||'';$('#code').value=c.code||'';$('#prompt').value=c.prompt||'';$('#image').value=c.image||'';$('#preview').src=c.image||'assets/default.svg';$('#publishedAt').value=c.publishedAt||'';$('#featured').checked=!!c.featured;window.scrollTo({top:0,behavior:'smooth'})}
+function payload(){return {id:$('#id').value||undefined,originalId:$('#originalId').value||undefined,title:$('#title').value.trim(),slug:$('#slug').value.trim()||slugify($('#title').value),category:$('#category').value.trim(),tags:$('#tags').value.split(',').map(x=>x.trim()).filter(Boolean),url:$('#url').value.trim(),description:$('#description').value.trim(),type:$('#type').value,status:$('#status').value,access:$('#access').value,linkType:$('#linkType').value,partner:$('#partner').value.trim(),campaign:$('#campaign').value.trim(),code:$('#code').value,prompt:$('#prompt').value,image:$('#image').value||'assets/default.svg',publishedAt:$('#publishedAt').value,featured:$('#featured').checked}}
+function render(){const rows=$('#rows');rows.innerHTML=items.map(c=>`<tr><td>#${esc(c.id)}</td><td>${esc(c.title)}</td><td>${esc(c.category||'')}</td><td><span class="status">${esc(c.status||'draft')}</span></td><td><button class="btn secondary" data-id="${esc(c.id)}">Editar</button></td></tr>`).join('');rows.querySelectorAll('button').forEach(b=>b.onclick=()=>fill(items.find(x=>x.id===b.dataset.id)))}
+async function boot(){try{const s=await api('/api/session');if(!s.authenticated){$('#login').href=API+'/auth/login';return}$('#auth').hidden=true;$('#panel').hidden=false;$('#who').textContent='Administrador: @'+s.user.login;items=(await api('/api/content')).items;render();clearForm()}catch(e){toast(e.message,false)}}
+$('#new').onclick=clearForm;$('#logout').onclick=async()=>{await api('/api/logout',{method:'POST'});location.reload()};
+$('#title').oninput=e=>{if(!$('#originalId').value)$('#slug').value=slugify(e.target.value)};
+$('#imageFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;const img=new Image();img.onload=()=>{const max=1600,scale=Math.min(1,max/img.width),c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext('2d').drawImage(img,0,0,c.width,c.height);$('#preview').src=c.toDataURL('image/webp',.82);URL.revokeObjectURL(img.src)};img.src=URL.createObjectURL(f)};
+$('#image').oninput=e=>{if(e.target.value)$('#preview').src=e.target.value};
+$('#generate').onclick=async()=>{try{toast('Gerando...');const d=await api('/api/generate',{method:'POST',body:JSON.stringify({kind:'content',content:payload()})});if(d.content){$('#description').value=d.content.description||$('#description').value;$('#tags').value=(d.content.tags||[]).join(', ');$('#slug').value=d.content.slug||$('#slug').value}toast('Sugestões geradas. Revise antes de publicar.')}catch(e){toast(e.message,false)}};
+$('#post').onclick=async()=>{try{toast('Gerando post...');const d=await api('/api/generate',{method:'POST',body:JSON.stringify({kind:'social',content:payload()})});$('#social').value=d.text||'';toast('Post gerado. Revise antes de publicar.')}catch(e){toast(e.message,false)}};
+$('#publish').onclick=async()=>{if(!$('#title').value||!$('#url').value){toast('Preencha título e URL.',false);return}if(!confirm('Publicar este conteúdo no GitHub?'))return;try{toast('Publicando...');const p=payload();p.status='published';if($('#preview').src.startsWith('data:'))p.imageData=$('#preview').src;const d=await api('/api/content/save',{method:'POST',body:JSON.stringify(p)});items=d.items;render();fill(items.find(x=>x.id===d.item.id));toast('Publicado. O GitHub Actions fará o build.')}catch(e){toast(e.message,false)}};
+$('#delete').onclick=async()=>{const id=$('#originalId').value;if(!id){toast('Selecione um conteúdo primeiro.',false);return}if(!confirm('Desativar este conteúdo?'))return;try{const d=await api('/api/content/archive',{method:'POST',body:JSON.stringify({id})});items=d.items;render();clearForm();toast('Conteúdo desativado.')}catch(e){toast(e.message,false)}};
+boot();
+</script></body></html>

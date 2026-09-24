@@ -1,0 +1,8 @@
+{
+  "name": "CódigoIA",
+  "short_name": "CódigoIA",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#070b10",
+  "theme_color": "#070b10"
+}
