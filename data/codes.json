@@ -58,5 +58,25 @@
     "campaign": "",
     "featured": false,
     "publishedAt": "2026-09-29"
+  },
+  {
+    "id": "004",
+    "title": "Shsbbs",
+    "slug": "shsbbs",
+    "category": "Shshsh",
+    "tags": [],
+    "description": "",
+    "image": "assets/uploads/004-shsbbs.webp",
+    "url": "https://codigoiacms.github.io/CodigoIA/admin.html",
+    "code": "",
+    "prompt": "",
+    "type": "code",
+    "status": "published",
+    "access": "free",
+    "linkType": "normal",
+    "partner": "",
+    "campaign": "",
+    "featured": false,
+    "publishedAt": "2026-09-29"
   }
 ]
