@@ -38,5 +38,25 @@
     "campaign": "",
     "featured": false,
     "publishedAt": "2026-09-29"
+  },
+  {
+    "id": "003",
+    "title": "Godia",
+    "slug": "godia",
+    "category": "Codigos",
+    "tags": [],
+    "description": "Teste",
+    "image": "assets/uploads/003-godia.webp",
+    "url": "https://",
+    "code": "Kkajajajajja",
+    "prompt": "",
+    "type": "code",
+    "status": "published",
+    "access": "free",
+    "linkType": "normal",
+    "partner": "",
+    "campaign": "",
+    "featured": false,
+    "publishedAt": "2026-09-29"
   }
 ]
