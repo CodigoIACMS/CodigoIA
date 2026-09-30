@@ -78,5 +78,25 @@
     "campaign": "",
     "featured": false,
     "publishedAt": "2026-09-29"
+  },
+  {
+    "id": "005",
+    "title": "Teste",
+    "slug": "teste",
+    "category": "Testes",
+    "tags": [],
+    "description": "",
+    "image": "assets/uploads/005-teste.webp",
+    "url": "https://www.instagram.com/?utm_source=op_m_sd",
+    "code": "",
+    "prompt": "",
+    "type": "code",
+    "status": "published",
+    "access": "free",
+    "linkType": "normal",
+    "partner": "",
+    "campaign": "",
+    "featured": false,
+    "publishedAt": "2026-09-30"
   }
 ]
