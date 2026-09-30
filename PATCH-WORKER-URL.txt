@@ -1,0 +1,13 @@
+// Dentro de cleanItem(), depois de verificar título/categoria/URL:
+const cleanUrl = p.url.trim();
+try {
+  const parsed = new URL(cleanUrl);
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new Error();
+  }
+} catch {
+  throw new Error("URL inválida. Use um endereço completo começando com https:// ou http://.");
+}
+
+// E use cleanUrl no objeto final:
+url: cleanUrl,
