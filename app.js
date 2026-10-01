@@ -20,4 +20,25 @@ async function initHome(){try{await loadCodes();const xs=visible(),quickXs=xs.sl
 async function initCatalog(){try{await loadCodes();const xs=visible(),q=$('#q'),cat=$('#cat'),host=$('#catalog'),count=$('#resultCount');const cats=[...new Set(xs.map(x=>x.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));cat.innerHTML='<option value="">Todas as categorias</option>'+cats.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');const p=new URLSearchParams(location.search);q.value=p.get('q')||'';function apply(){const term=q.value.trim(),c=cat.value,filtered=xs.filter(x=>(!c||x.category===c)&&matches(x,term));render(filtered,host);count.textContent=filtered.length;$('#catalogTitle').textContent=term?`Resultados para “${term}”`:c?c:'Todos os códigos'}q.oninput=apply;cat.onchange=apply;$('#clearFilters').onclick=()=>{q.value='';cat.value='';history.replaceState(null,'','catalog.html');apply();q.focus()};apply()}catch(e){$('#catalog').innerHTML=`<div class="empty-state"><strong>Erro</strong><span>${esc(e.message)}</span></div>`}}
 async function initItem(){try{await loadCodes();const p=new URLSearchParams(location.search),id=p.get('id'),slug=p.get('slug'),path=location.pathname.split('/').filter(Boolean),ci=path.indexOf('codigo'),ps=ci>=0?path[ci+1]:'';const x=CODES.find(y=>(id&&String(y.id)===String(id))||(slug&&y.slug===slug)||(ps&&(y.slug===ps||String(y.id)===ps)));if(!x){$('#item').innerHTML='<div class="not-found"><span class="eyebrow">gwzyrt.ai</span><h1>Conteúdo não encontrado</h1><p>Confira o código informado ou volte para a biblioteca.</p><a class="action-btn primary big-btn" href="catalog.html">Voltar aos códigos</a></div>';return}document.title=`${x.title||'Conteúdo'} — gwzyrt.ai`;const u=urlOf(x),tags=(x.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('');$('#item').innerHTML=`<a class="back-link" href="catalog.html">← Voltar para códigos</a><div class="detail-shell"><div class="detail-media"><div class="detail-image-frame"><img src="${esc(imgOf(x))}" alt="${esc(x.title||'Código')}" onerror="${fallback()}">${badge(x)}</div></div><div class="detail-info"><div class="detail-category"><span>${esc(x.category||'CÓDIGO')}</span><b>#${esc(String(x.id).padStart(3,'0'))}</b></div><h1>${esc(x.title||'Sem título')}</h1><p class="detail-description">${esc(x.description||'Conteúdo pronto para usar.')}</p>${tags?`<div class="tags">${tags}</div>`:''}<div class="code-callout"><div><span>USE ESTE CÓDIGO NO SITE</span><strong>#${esc(String(x.id).padStart(3,'0'))}</strong></div><button class="copy-code" id="copyCode">Copiar código</button></div><div class="detail-actions">${u?`<a class="action-btn primary big-btn" href="${esc(u)}" target="_blank" rel="noopener noreferrer">Abrir recurso <span>↗</span></a>`:'<button class="action-btn disabled big-btn" disabled>URL inválida</button>'}<button class="action-btn secondary big-btn" id="copyLink">Copiar link</button></div></div></div><section class="about-box"><span class="eyebrow">SOBRE</span><h2>${esc(x.title||'Este conteúdo')}</h2><p>Encontre este conteúdo rapidamente pesquisando pelo código <strong>#${esc(String(x.id).padStart(3,'0'))}</strong> no gwzyrt.ai.</p></section>`;$('#copyCode').onclick=()=>copyText(`#${String(x.id).padStart(3,'0')}`,$('#copyCode'),'Copiado ✓');$('#copyLink').onclick=()=>copyText(location.href,$('#copyLink'),'Link copiado ✓')}catch(e){$('#item').innerHTML=`<div class="not-found"><span class="eyebrow">ERRO</span><h1>Não foi possível carregar</h1><p>${esc(e.message||'Erro desconhecido.')}</p><a class="action-btn primary big-btn" href="catalog.html">Voltar</a></div>`}}
 async function copyText(t,b,s){try{await navigator.clipboard.writeText(t)}catch{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}const old=b.textContent;b.textContent=s;setTimeout(()=>b.textContent=old,1800)}
-document.addEventListener('DOMContentLoaded',()=>{const p=document.body.dataset.page;if(p==='home')initHome();if(p==='catalog')initCatalog();if(p==='item')initItem()});
+
+function initMobileNav(){
+  const toggle=document.querySelector('#menuToggle');
+  const nav=document.querySelector('#mainNav');
+  if(!toggle||!nav)return;
+  const close=()=>{
+    nav.classList.remove('open');
+    toggle.setAttribute('aria-expanded','false');
+    toggle.setAttribute('aria-label','Abrir menu');
+  };
+  toggle.addEventListener('click',()=>{
+    const open=nav.classList.toggle('open');
+    toggle.setAttribute('aria-expanded',String(open));
+    toggle.setAttribute('aria-label',open?'Fechar menu':'Abrir menu');
+  });
+  nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',close));
+  document.addEventListener('click',e=>{
+    if(!nav.contains(e.target)&&!toggle.contains(e.target))close();
+  });
+}
+
+document.addEventListener('DOMContentLoaded',()=>{initMobileNav();const p=document.body.dataset.page;if(p==='home')initHome();if(p==='catalog')initCatalog();if(p==='item')initItem()});

@@ -8,7 +8,7 @@
 </head>
 
 <body>
-<header class="site-header"><div class="header-inner"><a class="brand" href="index.html">gwzyrt<span>.ai</span></a><nav class="main-nav"><a href="index.html">Início</a><a href="catalog.html">Códigos</a><a class="active" href="admin.html">Painel</a></nav><a class="header-search" href="catalog.html">⌕</a></div></header>
+<header class="site-header"><div class="header-inner"><a class="brand" href="index.html">gwzyrt<span>.ai</span></a><button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="mainNav">☰</button><nav class="main-nav" id="mainNav"><a href="index.html">Início</a><a href="catalog.html">Códigos</a><a class="active" href="admin.html">Painel</a></nav><a class="header-search" href="catalog.html">⌕</a></div></header>
 
 <main class="admin container">
 
@@ -577,6 +577,26 @@ $('#publish').onclick=async()=>{
 $('#delete').onclick=async()=>{
   await archiveItem($('#originalId').value);
 };
+
+
+const menuToggle=document.querySelector('#menuToggle');
+const mainNav=document.querySelector('#mainNav');
+if(menuToggle&&mainNav){
+  const closeMenu=()=>{
+    mainNav.classList.remove('open');
+    menuToggle.setAttribute('aria-expanded','false');
+    menuToggle.setAttribute('aria-label','Abrir menu');
+  };
+  menuToggle.onclick=()=>{
+    const open=mainNav.classList.toggle('open');
+    menuToggle.setAttribute('aria-expanded',String(open));
+    menuToggle.setAttribute('aria-label',open?'Fechar menu':'Abrir menu');
+  };
+  mainNav.querySelectorAll('a').forEach(a=>a.addEventListener('click',closeMenu));
+  document.addEventListener('click',e=>{
+    if(!mainNav.contains(e.target)&&!menuToggle.contains(e.target))closeMenu();
+  });
+}
 
 boot();
 </script>
