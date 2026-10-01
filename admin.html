@@ -3,21 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Painel — CódigoIA</title>
+<title>Painel — gwzyrt.ai</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-<header class="nav">
-  <div class="container navin">
-    <a class="brand" href="index.html">CÓDIGO<span>IA</span></a>
-    <nav class="links">
-      <a href="index.html">Início</a>
-      <a href="catalog.html">Catálogo</a>
-      <a href="admin.html">Painel</a>
-    </nav>
-  </div>
-</header>
+<header class="site-header"><div class="header-inner"><a class="brand" href="index.html">gwzyrt<span>.ai</span></a><nav class="main-nav"><a href="index.html">Início</a><a href="catalog.html">Códigos</a><a class="active" href="admin.html">Painel</a></nav><a class="header-search" href="catalog.html">⌕</a></div></header>
 
 <main class="admin container">
 
@@ -228,7 +219,7 @@
 
 <script src="admin-config.js"></script>
 <script>
-const API=(window.CODIGOIA_API_URL||'').replace(/\/$/,'');
+const API=(window.CODIGOIA_API_URL||'https://codigoia-api.maru62638.workers.dev').replace(/\/$/,'');
 const $=s=>document.querySelector(s);
 let items=[];
 
