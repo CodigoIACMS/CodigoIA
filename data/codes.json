@@ -91,11 +91,17 @@
     "code": "",
     "prompt": "",
     "type": "code",
-    "status": "archived",
+    "status": "published",
     "access": "free",
     "linkType": "normal",
     "partner": "",
     "campaign": "",
+    "tiktokUrl": "",
+    "youtubeUrl": "",
+    "instagramUrl": "",
+    "facebookUrl": "",
+    "discordUrl": "",
+    "telegramUrl": "",
     "featured": false,
     "publishedAt": "2026-09-30"
   }
