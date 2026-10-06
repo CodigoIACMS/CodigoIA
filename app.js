@@ -17,7 +17,7 @@ function quick(x){return `<a class="quick-item" href="${itemUrl(x)}"><span class
 function render(xs,h){if(!h)return;h.innerHTML=xs.length?xs.map(card).join(''):`<div class="empty-state"><strong>Nenhum código encontrado.</strong><span>Tente outro nome ou código, como #005.</span></div>`}
 function homeSearch(){const f=$('#homeSearch'),i=$('#homeSearchInput');if(!f||!i)return;const go=q=>location.href=`catalog.html${q.trim()?`?q=${encodeURIComponent(q.trim())}`:''}`;f.addEventListener('submit',e=>{e.preventDefault();go(i.value)});document.querySelectorAll('[data-search]').forEach(b=>b.onclick=()=>go(b.dataset.search))}
 async function initHome(){try{await loadCodes();const xs=visible(),quickXs=xs.slice().sort((a,b)=>parseInt(a.id)-parseInt(b.id)).slice(0,6),feat=xs.filter(x=>x.featured);$('#quickCodes').innerHTML=quickXs.length?quickXs.map(quick).join(''):`<div class="empty-state">Nenhum código publicado ainda.</div>`;render((feat.length?feat:xs.slice().reverse()).slice(0,3),$('#featured'));homeSearch()}catch(e){const m=esc(e.message);if($('#quickCodes'))$('#quickCodes').innerHTML=`<div class="empty-state">${m}</div>`;if($('#featured'))$('#featured').innerHTML=`<div class="empty-state">${m}</div>`}}
-async function initCatalog(){try{await loadCodes();const xs=visible(),q=$('#q'),cat=$('#cat'),host=$('#catalog'),count=$('#resultCount');const cats=[...new Set(xs.map(x=>x.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));cat.innerHTML='<option value="">Todas as categorias</option>'+cats.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');const p=new URLSearchParams(location.search);q.value=p.get('q')||'';function apply(){const term=q.value.trim(),c=cat.value,filtered=xs.filter(x=>(!c||x.category===c)&&matches(x,term));render(filtered,host);count.textContent=filtered.length;$('#catalogTitle').textContent=term?`Resultados para “${term}”`:c?c:'Todos os códigos'}q.oninput=apply;cat.onchange=apply;$('#clearFilters').onclick=()=>{q.value='';cat.value='';history.replaceState(null,'','catalog.html');apply();q.focus()};apply()}catch(e){$('#catalog').innerHTML=`<div class="empty-state"><strong>Erro</strong><span>${esc(e.message)}</span></div>`}}
+async function initCatalog(){try{await loadCodes();const xs=visible(),q=$('#q'),cat=$('#cat'),host=$('#catalog'),count=$('#resultCount');const cats=[...new Set(xs.map(x=>x.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));cat.innerHTML='<option value="">Todas as categorias</option>'+cats.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');const p=new URLSearchParams(location.search);q.value=p.get('q')||'';function apply(){const term=q.value.trim(),c=cat.value,filtered=xs.filter(x=>(!c||x.category===c)&&matches(x,term));render(filtered,host);count.textContent=filtered.length;$('#catalogTitle').textContent=term?`Resultados para “${term}”`:c?c:'Todos os códigos'}q.oninput=apply;cat.onchange=apply;$('#clearFilters').onclick=()=>{q.value='';cat.value='';history.replaceState(null,'','catalog.html');apply();q.focus()};apply()}catch(e){if($('#catalog'))$('#catalog').innerHTML=`<div class="empty-state"><strong>Erro</strong><span>${esc(e.message)}</span></div>`}}
 
 async function initItem(){
 try{
@@ -27,75 +27,28 @@ try{
  if(!x){$('#item').innerHTML='<div class="not-found"><span class="eyebrow">gwzyrt.ai</span><h1>Conteúdo não encontrado</h1><p>Confira o código informado ou volte para a biblioteca.</p><a class="action-btn primary big-btn" href="catalog.html">Voltar aos códigos</a></div>';return}
  document.title=`${x.title||'Conteúdo'} — gwzyrt.ai`;
  const u=urlOf(x),tags=(x.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('');
- $('#item').innerHTML=`
- <a class="back-link" href="catalog.html">← Voltar para códigos</a>
- <div class="detail-shell">
-  <div class="detail-media"><div class="detail-image-frame"><img src="${esc(imgOf(x))}" alt="${esc(x.title||'Código')}" onerror="${fallback()}">${badge(x)}</div></div>
-  <div class="detail-info">
-   <div class="detail-category"><span>${esc(x.category||'CÓDIGO')}</span><b>#${esc(String(x.id).padStart(3,'0'))}</b></div>
-   <h1>${esc(x.title||'Sem título')}</h1>
-   <p class="detail-description">${esc(x.description||'Conteúdo pronto para usar.')}</p>
-   ${tags?`<div class="tags">${tags}</div>`:''}
-   <div class="code-callout"><div><span>USE ESTE CÓDIGO NO SITE</span><strong>#${esc(String(x.id).padStart(3,'0'))}</strong></div><button class="copy-code" id="copyCode">Copiar código</button></div>
-   <div class="detail-actions">${u?`<a class="action-btn primary big-btn" href="${esc(u)}" target="_blank" rel="noopener noreferrer">Abrir recurso <span>↗</span></a>`:'<button class="action-btn disabled big-btn" disabled>URL inválida</button>'}<button class="action-btn secondary big-btn" id="copyLink">Copiar link</button></div>
-  </div>
- </div>
- <section class="social-panel" id="socialPanel"></section>
- <section class="about-box"><span class="eyebrow">SOBRE</span><h2>${esc(x.title||'Este conteúdo')}</h2><p>Encontre este conteúdo rapidamente pesquisando pelo código <strong>#${esc(String(x.id).padStart(3,'0'))}</strong> no gwzyrt.ai.</p></section>`;
- $('#copyCode').onclick=()=>copyText(`#${String(x.id).padStart(3,'0')}`,$('#copyCode'),'Copiado ✓');
- $('#copyLink').onclick=()=>copyText(location.href,$('#copyLink'),'Link copiado ✓');
+ $('#item').innerHTML=`<a class="back-link" href="catalog.html">← Voltar para códigos</a><div class="detail-shell"><div class="detail-media"><div class="detail-image-frame"><img src="${esc(imgOf(x))}" alt="${esc(x.title||'Código')}" onerror="${fallback()}">${badge(x)}</div></div><div class="detail-info"><div class="detail-category"><span>${esc(x.category||'CÓDIGO')}</span><b>#${esc(String(x.id).padStart(3,'0'))}</b></div><h1>${esc(x.title||'Sem título')}</h1><p class="detail-description">${esc(x.description||'Conteúdo pronto para usar.')}</p>${tags?`<div class="tags">${tags}</div>`:''}<div class="code-callout"><div><span>USE ESTE CÓDIGO NO SITE</span><strong>#${esc(String(x.id).padStart(3,'0'))}</strong></div><button class="copy-code" id="copyCode">Copiar código</button></div><div class="detail-actions">${u?`<a class="action-btn primary big-btn" href="${esc(u)}" target="_blank" rel="noopener noreferrer">Abrir recurso <span>↗</span></a>`:'<button class="action-btn disabled big-btn" disabled>URL inválida</button>'}<button class="action-btn secondary big-btn" id="copyLink">Copiar link</button></div></div></div><section class="social-panel" id="socialPanel"></section><section class="about-box"><span class="eyebrow">SOBRE</span><h2>${esc(x.title||'Este conteúdo')}</h2><p>Encontre este conteúdo rapidamente pesquisando pelo código <strong>#${esc(String(x.id).padStart(3,'0'))}</strong> no gwzyrt.ai.</p></section>`;
+ $('#copyCode').onclick=()=>copyText(`#${String(x.id).padStart(3,'0')}`,$('#copyCode'),'Copiado ✓');$('#copyLink').onclick=()=>copyText(location.href,$('#copyLink'),'Link copiado ✓');
  await initSocial(x);
-}catch(e){$('#item').innerHTML=`<div class="not-found"><span class="eyebrow">ERRO</span><h1>Não foi possível carregar</h1><p>${esc(e.message||'Erro desconhecido.')}</p><a class="action-btn primary big-btn" href="catalog.html">Voltar</a></div>`}
+}catch(e){if($('#item'))$('#item').innerHTML=`<div class="not-found"><span class="eyebrow">ERRO</span><h1>Não foi possível carregar</h1><p>${esc(e.message||'Erro desconhecido.')}</p><a class="action-btn primary big-btn" href="catalog.html">Voltar</a></div>`}
 }
-
 async function copyText(t,b,s){try{await navigator.clipboard.writeText(t)}catch{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}const old=b.textContent;b.textContent=s;setTimeout(()=>b.textContent=old,1800)}
-
-function initMobileNav(){
- const toggle=document.querySelector('#menuToggle'),nav=document.querySelector('#mainNav');if(!toggle||!nav)return;
- const close=()=>{nav.classList.remove('open');toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-label','Abrir menu')};
- toggle.addEventListener('click',()=>{const open=nav.classList.toggle('open');toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?'Fechar menu':'Abrir menu')});
- nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',close));
- document.addEventListener('click',e=>{if(!nav.contains(e.target)&&!toggle.contains(e.target))close()});
-}
+function initMobileNav(){const toggle=document.querySelector('#menuToggle'),nav=document.querySelector('#mainNav');if(!toggle||!nav)return;const close=()=>{nav.classList.remove('open');toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-label','Abrir menu')};toggle.addEventListener('click',()=>{const open=nav.classList.toggle('open');toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?'Fechar menu':'Abrir menu')});nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',close));document.addEventListener('click',e=>{if(!nav.contains(e.target)&&!toggle.contains(e.target))close()})}
 
 const API_BASE='https://codigoia-api.maru62638.workers.dev';
+const USER_TOKEN_KEY='gwzyrt_user_session';
 let CURRENT_USER=null;
 
+function userToken(){return localStorage.getItem(USER_TOKEN_KEY)||''}
 async function userApi(path,options={}){
- const r=await fetch(API_BASE+path,{credentials:'include',headers:{'Content-Type':'application/json',...(options.headers||{})},...options});
+ const headers={'Content-Type':'application/json',...(options.headers||{})};
+ const token=userToken();if(token)headers.Authorization='Bearer '+token;
+ const r=await fetch(API_BASE+path,{credentials:'include',...options,headers});
  let d={};try{d=await r.json()}catch{}
  if(!r.ok)throw Error(d.error||d.message||'Não foi possível concluir a operação.');
  return d;
 }
-
-function userStyles(){
- if(document.getElementById('userStyles'))return;
- const s=document.createElement('style');s.id='userStyles';
- s.textContent=`
-.user-area{display:flex;align-items:center;gap:8px;margin-left:10px}
-.user-btn{border:1px solid rgba(255,255,255,.15);background:transparent;color:inherit;border-radius:10px;padding:9px 12px;cursor:pointer}
-.user-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px}
-.user-box{width:min(430px,100%);max-height:90vh;overflow:auto;background:#10151b;border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:22px;box-shadow:0 20px 70px rgba(0,0,0,.5)}
-.user-box h2{margin:0 0 8px}.user-box p{opacity:.75}.user-box form{display:grid;gap:10px}
-.user-box input,.user-box textarea{width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:#080b0f;color:inherit}
-.user-box textarea{min-height:110px;resize:vertical}.user-box button{cursor:pointer}
-.user-tabs{display:flex;gap:8px;margin:14px 0}.user-tabs button{flex:1}.user-close{float:right;background:none;border:0;color:inherit;font-size:22px}
-.user-msg{min-height:20px;color:#ffb4a8}.user-profile{position:relative}.user-menu{position:absolute;right:0;top:calc(100% + 8px);min-width:180px;background:#10151b;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px;z-index:1000}
-.user-menu button{display:block;width:100%;text-align:left;background:none;border:0;color:inherit;padding:10px;border-radius:8px}.user-menu button:hover{background:rgba(255,255,255,.07)}
-.social-panel{margin-top:28px;display:grid;gap:20px}.social-actions{display:flex;flex-wrap:wrap;gap:10px}
-.social-btn{border:1px solid rgba(255,255,255,.12);background:#10151b;color:inherit;border-radius:12px;padding:12px 15px;cursor:pointer}
-.social-btn.active{border-color:rgba(110,210,190,.7);background:rgba(110,210,190,.09)}
-.social-count{opacity:.75;margin-left:5px}.comments-box{border-top:1px solid rgba(255,255,255,.1);padding-top:20px}
-.comment-form{display:grid;gap:10px;margin:14px 0}.comment-form textarea{width:100%;box-sizing:border-box;min-height:100px;padding:12px;border-radius:12px;background:#080b0f;color:inherit;border:1px solid rgba(255,255,255,.15)}
-.comment-list{display:grid;gap:10px}.comment-card{padding:14px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.025)}
-.comment-meta{font-size:.85rem;opacity:.7;margin-bottom:8px}.comment-pending{opacity:.7;font-style:italic}.social-note{font-size:.9rem;opacity:.7}
-.profile-grid{display:grid;gap:12px}.profile-stat{padding:14px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.025)}
-.profile-stat strong{display:block;font-size:1.3rem}.profile-stat span{opacity:.7}
-.profile-list{display:grid;gap:8px;margin-top:12px}.profile-item{padding:10px;border-radius:10px;background:rgba(255,255,255,.04)}
-@media(max-width:760px){.user-area{margin:8px 0}.user-profile{width:100%}.user-profile>.user-btn{width:100%}.social-actions{display:grid;grid-template-columns:1fr 1fr}.social-btn{width:100%}}
-`;
- document.head.appendChild(s);
-}
+function userStyles(){if(document.getElementById('userStyles'))return;const s=document.createElement('style');s.id='userStyles';s.textContent=`.user-area{display:flex;align-items:center;gap:8px;margin-left:10px}.user-btn{border:1px solid rgba(255,255,255,.15);background:transparent;color:inherit;border-radius:10px;padding:9px 12px;cursor:pointer}.user-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px}.user-box{width:min(430px,100%);max-height:90vh;overflow:auto;background:#10151b;border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:22px;box-shadow:0 20px 70px rgba(0,0,0,.5)}.user-box h2{margin:0 0 8px}.user-box p{opacity:.75}.user-box form{display:grid;gap:10px}.user-box input,.user-box textarea{width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:#080b0f;color:inherit}.user-box textarea{min-height:110px;resize:vertical}.user-box button{cursor:pointer}.user-tabs{display:flex;gap:8px;margin:14px 0}.user-tabs button{flex:1}.user-close{float:right;background:none;border:0;color:inherit;font-size:22px}.user-msg{min-height:20px;color:#ffb4a8}.user-profile{position:relative}.user-menu{position:absolute;right:0;top:calc(100% + 8px);min-width:180px;background:#10151b;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px;z-index:1000}.user-menu button{display:block;width:100%;text-align:left;background:none;border:0;color:inherit;padding:10px;border-radius:8px}.user-menu button:hover{background:rgba(255,255,255,.07)}.social-panel{margin-top:28px;display:grid;gap:20px}.social-actions{display:flex;flex-wrap:wrap;gap:10px}.social-btn{border:1px solid rgba(255,255,255,.12);background:#10151b;color:inherit;border-radius:12px;padding:12px 15px;cursor:pointer}.social-btn.active{border-color:rgba(110,210,190,.7);background:rgba(110,210,190,.09)}.social-count{opacity:.75;margin-left:5px}.comments-box{border-top:1px solid rgba(255,255,255,.1);padding-top:20px}.comment-form{display:grid;gap:10px;margin:14px 0}.comment-form textarea{width:100%;box-sizing:border-box;min-height:100px;padding:12px;border-radius:12px;background:#080b0f;color:inherit;border:1px solid rgba(255,255,255,.15)}.comment-list{display:grid;gap:10px}.comment-card{padding:14px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.025)}.comment-meta{font-size:.85rem;opacity:.7;margin-bottom:8px}.social-note{font-size:.9rem;opacity:.7}.profile-grid{display:grid;gap:12px}.profile-stat{padding:14px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.025)}.profile-stat strong{display:block;font-size:1.3rem}.profile-stat span{opacity:.7}.profile-list{display:grid;gap:8px;margin-top:12px}.profile-item{padding:10px;border-radius:10px;background:rgba(255,255,255,.04)}@media(max-width:760px){.user-area{margin:8px 0}.user-profile{width:100%}.user-profile>.user-btn{width:100%}.social-actions{display:grid;grid-template-columns:1fr 1fr}.social-btn{width:100%}}`;document.head.appendChild(s)}
 
 function userModal(mode='login'){
  const old=document.getElementById('userModal');if(old)old.remove();
@@ -105,238 +58,49 @@ function userModal(mode='login'){
  const fields=$('#userFields',m),title=$('#userTitle',m),intro=$('#userIntro',m),submit=$('#userSubmit',m),form=$('#userForm',m);
  function setMode(x){const reg=x==='register';title.textContent=reg?'Criar conta':'Entrar';intro.textContent=reg?'Crie sua conta para salvar favoritos, curtidas e histórico.':'Entre para acessar seu perfil e seus conteúdos salvos.';fields.innerHTML=reg?`<input id="userUsername" placeholder="Nome de usuário" autocomplete="username" required><input id="userDisplay" placeholder="Nome de exibição" autocomplete="name" required>`:'';$('#userPassword',m).autocomplete=reg?'new-password':'current-password';submit.textContent=reg?'Criar conta':'Entrar';m.dataset.mode=x}
  $('#tabLogin',m).onclick=()=>setMode('login');$('#tabRegister',m).onclick=()=>setMode('register');
- form.onsubmit=async e=>{e.preventDefault();const msg=$('#userMsg',m);msg.textContent='';try{const body={email:$('#userEmail',m).value.trim(),password:$('#userPassword',m).value};let d;if(m.dataset.mode==='register'){body.username=$('#userUsername',m).value.trim();body.display_name=$('#userDisplay',m).value.trim();d=await userApi('/api/user/register',{method:'POST',body:JSON.stringify(body)})}else d=await userApi('/api/user/login',{method:'POST',body:JSON.stringify(body)});CURRENT_USER=d.user||null;m.remove();updateUserUI()}catch(err){msg.textContent=err.message||'Erro ao entrar.'}};
+ form.onsubmit=async e=>{e.preventDefault();const msg=$('#userMsg',m);msg.textContent='';try{const body={email:$('#userEmail',m).value.trim(),password:$('#userPassword',m).value};let d;if(m.dataset.mode==='register'){body.username=$('#userUsername',m).value.trim();body.display_name=$('#userDisplay',m).value.trim();d=await userApi('/api/user/register',{method:'POST',body:JSON.stringify(body)})}else d=await userApi('/api/user/login',{method:'POST',body:JSON.stringify(body)});if(d.sessionToken)localStorage.setItem(USER_TOKEN_KEY,d.sessionToken);CURRENT_USER=d.user||null;m.remove();updateUserUI();await refreshItemSocial()}catch(err){msg.textContent=err.message||'Erro ao entrar.'}};
  setMode(mode);
-   }
+}
 function updateUserUI(){
- userStyles();
- let area=$('#userArea');
- if(!area){
-  const nav=$('#mainNav')||document.querySelector('header nav');
-  if(!nav)return;
-  area=document.createElement('div');area.id='userArea';area.className='user-area';nav.appendChild(area);
- }
- if(!CURRENT_USER){
-  area.innerHTML=`<button class="user-btn" id="loginUserBtn">Entrar</button>`;
-  $('#loginUserBtn').onclick=()=>userModal('login');
-  return;
- }
+ userStyles();let area=$('#userArea');
+ if(!area){const nav=$('#mainNav')||document.querySelector('header nav');if(!nav)return;area=document.createElement('div');area.id='userArea';area.className='user-area';nav.appendChild(area)}
+ if(!CURRENT_USER){area.innerHTML=`<button class="user-btn" id="loginUserBtn">Entrar</button>`;$('#loginUserBtn').onclick=()=>userModal('login');return}
  area.innerHTML=`<div class="user-profile"><button class="user-btn" id="userMenuBtn">Olá, ${esc(CURRENT_USER.display_name||CURRENT_USER.username||'usuário')} ▾</button><div class="user-menu" id="userMenu" hidden><button id="profileBtn">Meu perfil</button><button id="logoutBtn">Sair</button></div></div>`;
  $('#userMenuBtn').onclick=()=>{$('#userMenu').hidden=!$('#userMenu').hidden};
  $('#profileBtn').onclick=()=>{const menu=$('#userMenu');if(menu)menu.hidden=true;showProfile()};
- $('#logoutBtn').onclick=async()=>{try{await userApi('/api/user/logout',{method:'POST',body:'{}'})}catch{}CURRENT_USER=null;updateUserUI();if(location.pathname.endsWith('item.html')){const id=new URLSearchParams(location.search).get('id');const x=CODES.find(y=>String(y.id)===String(id));if(x)initSocial(x)}};
+ $('#logoutBtn').onclick=async()=>{try{await userApi('/api/user/logout',{method:'POST',body:'{}'})}catch{}localStorage.removeItem(USER_TOKEN_KEY);CURRENT_USER=null;updateUserUI();refreshItemSocial()};
 }
-
-async function loadCurrentUser(){
- try{
-  const d=await userApi('/api/user/session');
-  CURRENT_USER=d.user||null;
- }catch{CURRENT_USER=null}
- updateUserUI();
-}
-
+async function loadCurrentUser(){try{const d=await userApi('/api/user/session');CURRENT_USER=d.user||null}catch{CURRENT_USER=null}updateUserUI()}
 async function showProfile(){
- userStyles();
- const old=$('#profileModal');if(old)old.remove();
- const m=document.createElement('div');m.className='user-modal';m.id='profileModal';
- m.innerHTML=`<div class="user-box"><button class="user-close" aria-label="Fechar">×</button><h2>Meu perfil</h2><p>Gerencie sua conta e seus conteúdos salvos.</p><div id="profileContent">Carregando...</div></div>`;
- document.body.appendChild(m);
- m.querySelector('.user-close').onclick=()=>m.remove();
- m.addEventListener('click',e=>{if(e.target===m)m.remove()});
+ userStyles();const old=$('#profileModal');if(old)old.remove();const m=document.createElement('div');m.className='user-modal';m.id='profileModal';m.innerHTML=`<div class="user-box"><button class="user-close" aria-label="Fechar">×</button><h2>Meu perfil</h2><p>Gerencie sua conta e seus conteúdos salvos.</p><div id="profileContent">Carregando...</div></div>`;document.body.appendChild(m);m.querySelector('.user-close').onclick=()=>m.remove();m.addEventListener('click',e=>{if(e.target===m)m.remove()});
  const content=$('#profileContent',m);
- try{
-  const [fav,hist]=await Promise.all([
-   userApi('/api/user/favorites'),
-   userApi('/api/user/history')
-  ]);
-  const favorites=fav.favorites||[],history=hist.history||[];
-  const find=id=>CODES.find(x=>String(x.id)===String(id));
-  const favItems=favorites.map(v=>find(v.content_id)).filter(Boolean);
-  const histItems=history.map(v=>find(v.content_id)).filter(Boolean);
-  content.innerHTML=`
-   <div class="profile-grid">
-    <div class="profile-stat"><strong>${favorites.length}</strong><span>Favoritos</span></div>
-    <div class="profile-stat"><strong>${history.length}</strong><span>Itens no histórico</span></div>
-   </div>
-   <hr>
-   <h3>Dados da conta</h3>
-   <form id="profileForm" class="comment-form">
-    <input id="profileDisplay" value="${esc(CURRENT_USER.display_name||'')}" placeholder="Nome de exibição" maxlength="80">
-    <button class="action-btn primary" type="submit">Salvar nome</button>
-   </form>
-   <h3>Alterar senha</h3>
-   <form id="passwordForm" class="comment-form">
-    <input id="oldPassword" type="password" placeholder="Senha atual" autocomplete="current-password" required>
-    <input id="newPassword" type="password" placeholder="Nova senha" autocomplete="new-password" minlength="8" required>
-    <button class="action-btn secondary" type="submit">Alterar senha</button>
-   </form>
-   <h3>Favoritos</h3>
-   <div class="profile-list">${favItems.length?favItems.map(x=>`<a class="profile-item" href="${itemUrl(x)}">#${esc(String(x.id).padStart(3,'0'))} — ${esc(x.title)}</a>`).join(''):'<span class="social-note">Nenhum favorito ainda.</span>'}</div>
-   <h3>Histórico</h3>
-   <div class="profile-list">${histItems.length?histItems.map(x=>`<a class="profile-item" href="${itemUrl(x)}">#${esc(String(x.id).padStart(3,'0'))} — ${esc(x.title)}</a>`).join(''):'<span class="social-note">Seu histórico está vazio.</span>'}</div>
-   <button class="action-btn secondary" id="clearHistory">Limpar histórico</button>
-   <div class="user-msg" id="profileMsg"></div>`;
-  $('#profileForm',m).onsubmit=async e=>{
-   e.preventDefault();
-   try{
-    const d=await userApi('/api/user/profile',{method:'POST',body:JSON.stringify({displayName:$('#profileDisplay',m).value.trim()})});
-    CURRENT_USER=d.user||CURRENT_USER;updateUserUI();$('#profileMsg',m).textContent='Nome atualizado.';
-   }catch(err){$('#profileMsg',m).textContent=err.message}
-  };
-  $('#passwordForm',m).onsubmit=async e=>{
-   e.preventDefault();
-   try{
-    await userApi('/api/user/password',{method:'POST',body:JSON.stringify({currentPassword:$('#oldPassword',m).value,newPassword:$('#newPassword',m).value})});
-    e.target.reset();$('#profileMsg',m).textContent='Senha alterada com sucesso.';
-   }catch(err){$('#profileMsg',m).textContent=err.message}
-  };
-  $('#clearHistory',m).onclick=async()=>{
-   try{await userApi('/api/user/history',{method:'DELETE'});$('#profileMsg',m).textContent='Histórico limpo.';setTimeout(()=>showProfile(),500)}
-   catch(err){$('#profileMsg',m).textContent=err.message}
-  };
+ try{const [fav,hist]=await Promise.all([userApi('/api/user/favorites'),userApi('/api/user/history')]);const favorites=fav.favorites||[],history=hist.history||[],find=id=>CODES.find(x=>String(x.id)===String(id)),favItems=favorites.map(v=>find(v.content_id)).filter(Boolean),histItems=history.map(v=>find(v.content_id)).filter(Boolean);
+ content.innerHTML=`<div class="profile-grid"><div class="profile-stat"><strong>${favorites.length}</strong><span>Favoritos</span></div><div class="profile-stat"><strong>${history.length}</strong><span>Itens no histórico</span></div></div><hr><h3>Dados da conta</h3><form id="profileForm" class="comment-form"><input id="profileDisplay" value="${esc(CURRENT_USER.display_name||'')}" placeholder="Nome de exibição" maxlength="80"><button class="action-btn primary" type="submit">Salvar nome</button></form><h3>Alterar senha</h3><form id="passwordForm" class="comment-form"><input id="oldPassword" type="password" placeholder="Senha atual" autocomplete="current-password" required><input id="newPassword" type="password" placeholder="Nova senha" autocomplete="new-password" minlength="8" required><button class="action-btn secondary" type="submit">Alterar senha</button></form><h3>Favoritos</h3><div class="profile-list">${favItems.length?favItems.map(x=>`<a class="profile-item" href="${itemUrl(x)}">#${esc(String(x.id).padStart(3,'0'))} — ${esc(x.title)}</a>`).join(''):'<span class="social-note">Nenhum favorito ainda.</span>'}</div><h3>Histórico</h3><div class="profile-list">${histItems.length?histItems.map(x=>`<a class="profile-item" href="${itemUrl(x)}">#${esc(String(x.id).padStart(3,'0'))} — ${esc(x.title)}</a>`).join(''):'<span class="social-note">Seu histórico está vazio.</span>'}</div><button class="action-btn secondary" id="clearHistory">Limpar histórico</button><div class="user-msg" id="profileMsg"></div>`;
+ $('#profileForm',m).onsubmit=async e=>{e.preventDefault();try{const d=await userApi('/api/user/profile',{method:'POST',body:JSON.stringify({displayName:$('#profileDisplay',m).value.trim()})});CURRENT_USER=d.user||CURRENT_USER;updateUserUI();$('#profileMsg',m).textContent='Nome atualizado.'}catch(err){$('#profileMsg',m).textContent=err.message}};
+ $('#passwordForm',m).onsubmit=async e=>{e.preventDefault();try{const d=await userApi('/api/user/password',{method:'POST',body:JSON.stringify({currentPassword:$('#oldPassword',m).value,newPassword:$('#newPassword',m).value})});if(d.sessionToken)localStorage.setItem(USER_TOKEN_KEY,d.sessionToken);e.target.reset();$('#profileMsg',m).textContent='Senha alterada com sucesso.'}catch(err){$('#profileMsg',m).textContent=err.message}};
+ $('#clearHistory',m).onclick=async()=>{try{await userApi('/api/user/history',{method:'DELETE'});$('#profileMsg',m).textContent='Histórico limpo.';setTimeout(()=>showProfile(),500)}catch(err){$('#profileMsg',m).textContent=err.message}};
  }catch(err){content.innerHTML=`<div class="user-msg">${esc(err.message)}</div>`}
 }
-
+async function refreshItemSocial(){if(!location.pathname.toLowerCase().endsWith('item.html'))return;const id=new URLSearchParams(location.search).get('id');const x=CODES.find(y=>String(y.id)===String(id));if(x)await initSocial(x)}
 async function initSocial(x){
- userStyles();
- const panel=$('#socialPanel');if(!panel)return;
- if(!CURRENT_USER){
-  panel.innerHTML=`<div class="comments-box"><h2>Interaja com este conteúdo</h2><p class="social-note">Entre ou crie uma conta para curtir, favoritar, salvar no histórico e comentar.</p><div class="social-actions"><button class="social-btn" id="socialLogin">Entrar</button><button class="social-btn" id="socialRegister">Criar conta</button><button class="social-btn" id="shareItem">Compartilhar</button></div></div>`;
-  $('#socialLogin').onclick=()=>userModal('login');
-  $('#socialRegister').onclick=()=>userModal('register');
-  $('#shareItem').onclick=()=>shareCurrent(x);
-  return;
- }
-
- panel.innerHTML=`
- <div class="social-actions">
-  <button class="social-btn" id="likeBtn">♡ Curtir <span class="social-count" id="likeCount">0</span></button>
-  <button class="social-btn" id="favBtn">☆ Favoritar</button>
-  <button class="social-btn" id="shareItem">↗ Compartilhar</button>
- </div>
- <div class="comments-box">
-  <h2>Comentários</h2>
-  <form class="comment-form" id="commentForm">
-   <textarea id="commentBody" maxlength="1000" placeholder="Escreva um comentário..." required></textarea>
-   <button class="action-btn primary" type="submit">Enviar comentário</button>
-   <div class="social-note">Seu comentário passará por moderação antes de aparecer publicamente.</div>
-  </form>
-  <div class="comment-list" id="commentList">Carregando comentários...</div>
- </div>`;
-
+ userStyles();const panel=$('#socialPanel');if(!panel)return;
+ if(!CURRENT_USER){panel.innerHTML=`<div class="comments-box"><h2>Interaja com este conteúdo</h2><p class="social-note">Entre ou crie uma conta para curtir, favoritar, salvar no histórico e comentar.</p><div class="social-actions"><button class="social-btn" id="socialLogin">Entrar</button><button class="social-btn" id="socialRegister">Criar conta</button><button class="social-btn" id="shareItem">Compartilhar</button></div></div>`;$('#socialLogin').onclick=()=>userModal('login');$('#socialRegister').onclick=()=>userModal('register');$('#shareItem').onclick=()=>shareCurrent(x);return}
+ panel.innerHTML=`<div class="social-actions"><button class="social-btn" id="likeBtn">♡ Curtir <span class="social-count" id="likeCount">0</span></button><button class="social-btn" id="favBtn">☆ Favoritar</button><button class="social-btn" id="shareItem">↗ Compartilhar</button></div><div class="comments-box"><h2>Comentários</h2><form class="comment-form" id="commentForm"><textarea id="commentBody" maxlength="1000" placeholder="Escreva um comentário..." required></textarea><button class="action-btn primary" type="submit">Enviar comentário</button><div class="social-note">Seu comentário passará por moderação antes de aparecer publicamente.</div></form><div class="comment-list" id="commentList">Carregando comentários...</div></div>`;
  $('#shareItem').onclick=()=>shareCurrent(x);
-
  try{
-  const [like,favs]=await Promise.all([
-   userApi(`/api/user/like?contentId=${encodeURIComponent(x.id)}`),
-   userApi('/api/user/favorites')
-  ]);
-  const liked=!!like.liked;
-  const isFav=(favs.favorites||[]).some(v=>String(v.content_id)===String(x.id));
-  updateLikeButton(liked,like.count);
-  updateFavButton(isFav);
-
-  $('#likeBtn').onclick=async()=>{
-   try{
-    const d=await userApi('/api/user/like',{method:'POST',body:JSON.stringify({contentId:String(x.id)})});
-    updateLikeButton(!!d.liked,d.count);
-   }catch(err){alert(err.message)}
-  };
-
-  $('#favBtn').onclick=async()=>{
-   try{
-    const current=$('#favBtn').dataset.active==='1';
-    if(current){
-     await userApi(`/api/user/favorite?contentId=${encodeURIComponent(x.id)}`,{method:'DELETE'});
-     updateFavButton(false);
-    }else{
-     await userApi('/api/user/favorite',{method:'POST',body:JSON.stringify({contentId:String(x.id)})});
-     updateFavButton(true);
-    }
-   }catch(err){alert(err.message)}
-  };
-
-  try{
-   await userApi('/api/user/history',{method:'POST',body:JSON.stringify({contentId:String(x.id)})});
-  }catch{}
-
+  const [like,favs]=await Promise.all([userApi(`/api/user/like?contentId=${encodeURIComponent(x.id)}`),userApi('/api/user/favorites')]);
+  updateLikeButton(!!like.liked,like.count);updateFavButton((favs.favorites||[]).some(v=>String(v.content_id)===String(x.id)));
+  $('#likeBtn').onclick=async()=>{try{const d=await userApi('/api/user/like',{method:'POST',body:JSON.stringify({contentId:String(x.id)})});updateLikeButton(!!d.liked,d.count)}catch(err){alert(err.message)}};
+  $('#favBtn').onclick=async()=>{try{const current=$('#favBtn').dataset.active==='1';if(current){await userApi(`/api/user/favorite?contentId=${encodeURIComponent(x.id)}`,{method:'DELETE'});updateFavButton(false)}else{await userApi('/api/user/favorite',{method:'POST',body:JSON.stringify({contentId:String(x.id)})});updateFavButton(true)}}catch(err){alert(err.message)}};
+  try{await userApi('/api/user/history',{method:'POST',body:JSON.stringify({contentId:String(x.id)})})}catch{}
   await loadComments(x);
- }catch(err){
-  panel.innerHTML+=`<div class="social-note">${esc(err.message)}</div>`;
- }
+ }catch(err){panel.innerHTML+=`<div class="social-note">${esc(err.message)}</div>`}
 }
-
-function updateLikeButton(active,count){
- const b=$('#likeBtn');if(!b)return;
- b.dataset.active=active?'1':'0';
- b.classList.toggle('active',active);
- b.innerHTML=`${active?'♥':'♡'} Curtir <span class="social-count">${Number(count||0)}</span>`;
-}
-
-function updateFavButton(active){
- const b=$('#favBtn');if(!b)return;
- b.dataset.active=active?'1':'0';
- b.classList.toggle('active',active);
- b.innerHTML=active?'★ Favoritado':'☆ Favoritar';
-}
-
-async function loadComments(x){
- const list=$('#commentList');if(!list)return;
- try{
-  const d=await userApi(`/api/comments?contentId=${encodeURIComponent(x.id)}`);
-  const comments=d.comments||[];
-  list.innerHTML=comments.length?comments.map(c=>`
-   <div class="comment-card">
-    <div class="comment-meta"><strong>${esc(c.display_name||c.username||'Usuário')}</strong> · ${esc(formatDate(c.created_at))}</div>
-    <div>${esc(c.body||'')}</div>
-   </div>`).join(''):'<span class="social-note">Ainda não há comentários publicados.</span>';
-
-  $('#commentForm').onsubmit=async e=>{
-   e.preventDefault();
-   const textarea=$('#commentBody'),body=textarea.value.trim();
-   if(!body)return;
-   const submit=e.submitter||e.target.querySelector('button[type="submit"]');
-   try{
-    if(submit)submit.disabled=true;
-    await userApi('/api/comments',{method:'POST',body:JSON.stringify({contentId:String(x.id),body})});
-    textarea.value='';
-    const note=document.createElement('div');note.className='social-note';note.textContent='Comentário enviado para moderação.';
-    e.target.appendChild(note);
-    setTimeout(()=>note.remove(),4000);
-   }catch(err){alert(err.message)}
-   finally{if(submit)submit.disabled=false}
-  };
- }catch(err){
-  list.innerHTML=`<span class="social-note">${esc(err.message)}</span>`;
- }
-}
-
-function formatDate(v){
- if(!v)return'';
- const d=new Date(v);if(Number.isNaN(d.getTime()))return String(v);
- return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
-}
-
-async function shareCurrent(x){
- const data={title:x.title||'gwzyrt.ai',text:`Confira ${x.title||'este conteúdo'} no gwzyrt.ai`,url:location.href};
- try{
-  if(navigator.share)await navigator.share(data);
-  else await navigator.clipboard.writeText(location.href);
- }catch{}
-}
-
-async function initUserUI(){
- userStyles();
- await loadCurrentUser();
-}
-
-function init(){
- initMobileNav();
- const path=location.pathname.toLowerCase();
- if(path.endsWith('/index.html')||path.endsWith('/'))initHome();
- else if(path.endsWith('catalog.html'))initCatalog();
- else if(path.endsWith('item.html'))initItem();
- initUserUI();
-}
-
+function updateLikeButton(active,count){const b=$('#likeBtn');if(!b)return;b.dataset.active=active?'1':'0';b.classList.toggle('active',active);b.innerHTML=`${active?'♥':'♡'} Curtir <span class="social-count">${Number(count||0)}</span>`}
+function updateFavButton(active){const b=$('#favBtn');if(!b)return;b.dataset.active=active?'1':'0';b.classList.toggle('active',active);b.innerHTML=active?'★ Favoritado':'☆ Favoritar'}
+async function loadComments(x){const list=$('#commentList');if(!list)return;try{const d=await userApi(`/api/comments?contentId=${encodeURIComponent(x.id)}`),comments=d.comments||[];list.innerHTML=comments.length?comments.map(c=>`<div class="comment-card"><div class="comment-meta"><strong>${esc(c.display_name||c.username||'Usuário')}</strong> · ${esc(formatDate(c.created_at))}</div><div>${esc(c.body||'')}</div></div>`).join(''):'<span class="social-note">Ainda não há comentários publicados.</span>';$('#commentForm').onsubmit=async e=>{e.preventDefault();const t=$('#commentBody'),body=t.value.trim();if(!body)return;const submit=e.submitter||e.target.querySelector('button[type="submit"]');try{if(submit)submit.disabled=true;await userApi('/api/comments',{method:'POST',body:JSON.stringify({contentId:String(x.id),body})});t.value='';const n=document.createElement('div');n.className='social-note';n.textContent='Comentário enviado para moderação.';e.target.appendChild(n);setTimeout(()=>n.remove(),4000)}catch(err){alert(err.message)}finally{if(submit)submit.disabled=false}}}catch(err){list.innerHTML=`<span class="social-note">${esc(err.message)}</span>`}}
+function formatDate(v){if(!v)return'';const d=new Date(v);if(Number.isNaN(d.getTime()))return String(v);return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})}
+async function shareCurrent(x){const data={title:x.title||'gwzyrt.ai',text:`Confira ${x.title||'este conteúdo'} no gwzyrt.ai`,url:location.href};try{if(navigator.share)await navigator.share(data);else await navigator.clipboard.writeText(location.href)}catch{}}
+async function initUserUI(){userStyles();await loadCurrentUser()}
+async function init(){initMobileNav();await initUserUI();const path=location.pathname.toLowerCase();if(path.endsWith('/index.html')||path.endsWith('/'))await initHome();else if(path.endsWith('catalog.html'))await initCatalog();else if(path.endsWith('item.html'))await initItem()}
 document.addEventListener('DOMContentLoaded',init);
