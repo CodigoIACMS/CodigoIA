@@ -40,5 +40,550 @@ function initMobileNav(){
     if(!nav.contains(e.target)&&!toggle.contains(e.target))close();
   });
 }
+const API_BASE='https://codigoia-api.maru62638.workers.dev';
+let CURRENT_USER=null;
 
-document.addEventListener('DOMContentLoaded',()=>{initMobileNav();const p=document.body.dataset.page;if(p==='home')initHome();if(p==='catalog')initCatalog();if(p==='item')initItem()});
+async function userApi(path,options={}){
+  const r=await fetch(API_BASE+path,{
+    credentials:'include',
+    headers:{
+      'Content-Type':'application/json',
+      ...(options.headers||{})
+    },
+    ...options
+  });
+
+  let d={};
+  try{d=await r.json()}catch{}
+
+  if(!r.ok){
+    throw Error(d.error||d.message||'Não foi possível concluir a operação.');
+  }
+
+  return d;
+}
+
+function userStyles(){
+  if(document.getElementById('userStyles'))return;
+
+  const s=document.createElement('style');
+  s.id='userStyles';
+
+  s.textContent=`
+.user-area{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-left:10px;
+}
+
+.user-btn{
+  border:1px solid rgba(255,255,255,.15);
+  background:transparent;
+  color:inherit;
+  border-radius:10px;
+  padding:9px 12px;
+  cursor:pointer;
+}
+
+.user-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.72);
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+}
+
+.user-box{
+  width:min(430px,100%);
+  background:#10151b;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:18px;
+  padding:22px;
+  box-shadow:0 20px 70px rgba(0,0,0,.5);
+}
+
+.user-box h2{
+  margin:0 0 8px;
+}
+
+.user-box p{
+  opacity:.75;
+}
+
+.user-box form{
+  display:grid;
+  gap:10px;
+}
+
+.user-box input{
+  width:100%;
+  box-sizing:border-box;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.15);
+  background:#080b0f;
+  color:inherit;
+}
+
+.user-box button{
+  cursor:pointer;
+}
+
+.user-tabs{
+  display:flex;
+  gap:8px;
+  margin:14px 0;
+}
+
+.user-tabs button{
+  flex:1;
+}
+
+.user-close{
+  float:right;
+  background:none;
+  border:0;
+  color:inherit;
+  font-size:22px;
+}
+
+.user-msg{
+  min-height:20px;
+  color:#ffb4a8;
+}
+
+.user-profile{
+  position:relative;
+}
+
+.user-menu{
+  position:absolute;
+  right:0;
+  top:calc(100% + 8px);
+  min-width:180px;
+  background:#10151b;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:12px;
+  padding:8px;
+  z-index:1000;
+}
+
+.user-menu button{
+  display:block;
+  width:100%;
+  text-align:left;
+  background:none;
+  border:0;
+  color:inherit;
+  padding:10px;
+  border-radius:8px;
+}
+
+.user-menu button:hover{
+  background:rgba(255,255,255,.07);
+}
+
+@media(max-width:760px){
+  .user-area{
+    margin:8px 0;
+  }
+
+  .user-profile{
+    width:100%;
+  }
+
+  .user-profile>.user-btn{
+    width:100%;
+  }
+}
+`;
+
+  document.head.appendChild(s);
+}
+
+function userModal(mode='login'){
+  const old=document.getElementById('userModal');
+
+  if(old)old.remove();
+
+  const m=document.createElement('div');
+
+  m.className='user-modal';
+  m.id='userModal';
+
+  m.innerHTML=`
+<div class="user-box">
+
+<button class="user-close" aria-label="Fechar">×</button>
+
+<h2 id="userTitle"></h2>
+
+<p id="userIntro"></p>
+
+<div class="user-tabs">
+<button class="action-btn secondary" id="tabLogin">Entrar</button>
+<button class="action-btn secondary" id="tabRegister">Criar conta</button>
+</div>
+
+<form id="userForm">
+
+<div id="userFields"></div>
+
+<input
+id="userEmail"
+type="email"
+placeholder="E-mail"
+autocomplete="email"
+required
+>
+
+<input
+id="userPassword"
+type="password"
+placeholder="Senha"
+autocomplete="current-password"
+required
+>
+
+<div class="user-msg" id="userMsg"></div>
+
+<button
+class="action-btn primary"
+type="submit"
+id="userSubmit">
+</button>
+
+</form>
+
+</div>
+`;
+
+  document.body.appendChild(m);
+
+  m.querySelector('.user-close').onclick=()=>m.remove();
+
+  m.addEventListener('click',e=>{
+    if(e.target===m)m.remove();
+  });
+
+  const fields=$('#userFields',m);
+  const title=$('#userTitle',m);
+  const intro=$('#userIntro',m);
+  const submit=$('#userSubmit',m);
+  const form=$('#userForm',m);
+
+  function setMode(x){
+
+    const reg=x==='register';
+
+    title.textContent=reg?'Criar conta':'Entrar';
+
+    intro.textContent=reg
+      ?'Crie sua conta para salvar favoritos, curtidas e histórico.'
+      :'Entre para acessar seu perfil e seus conteúdos salvos.';
+
+    fields.innerHTML=reg
+      ?`
+<input
+id="userUsername"
+placeholder="Nome de usuário"
+autocomplete="username"
+required
+>
+
+<input
+id="userDisplay"
+placeholder="Nome de exibição"
+autocomplete="name"
+required
+>
+`
+      :'';
+
+    $('#userPassword',m).autocomplete=
+      reg?'new-password':'current-password';
+
+    submit.textContent=reg?'Criar conta':'Entrar';
+
+    m.dataset.mode=x;
+  }
+
+  $('#tabLogin',m).onclick=()=>setMode('login');
+
+  $('#tabRegister',m).onclick=()=>setMode('register');
+
+  form.onsubmit=async e=>{
+
+    e.preventDefault();
+
+    const msg=$('#userMsg',m);
+
+    msg.textContent='';
+
+    try{
+
+      const body={
+        email:$('#userEmail',m).value.trim(),
+        password:$('#userPassword',m).value
+      };
+
+      let d;
+
+      if(m.dataset.mode==='register'){
+
+        body.username=$('#userUsername',m).value.trim();
+
+        body.display_name=
+          $('#userDisplay',m).value.trim();
+
+        d=await userApi(
+          '/api/user/register',
+          {
+            method:'POST',
+            body:JSON.stringify(body)
+          }
+        );
+
+      }else{
+
+        d=await userApi(
+          '/api/user/login',
+          {
+            method:'POST',
+            body:JSON.stringify(body)
+          }
+        );
+      }
+
+      CURRENT_USER=d.user||null;
+
+      m.remove();
+
+      updateUserUI();
+
+    }catch(err){
+
+      msg.textContent=
+        err.message||'Erro ao entrar.';
+    }
+  };
+
+  setMode(mode);
+}
+
+async function loadUser(){
+
+  try{
+
+    const d=await userApi('/api/user/session');
+
+    CURRENT_USER=
+      d.authenticated
+      ?d.user
+      :null;
+
+  }catch{
+
+    CURRENT_USER=null;
+  }
+
+  updateUserUI();
+}
+
+function updateUserUI(){
+
+  const host=document.querySelector('.header-inner');
+
+  if(!host)return;
+
+  let area=document.getElementById('userArea');
+
+  if(!area){
+
+    area=document.createElement('div');
+
+    area.id='userArea';
+
+    area.className='user-area';
+
+    host.appendChild(area);
+  }
+
+  if(!CURRENT_USER){
+
+    area.innerHTML=`
+<button
+class="user-btn"
+id="userLoginBtn">
+Entrar
+</button>
+`;
+
+    $('#userLoginBtn',area).onclick=
+      ()=>userModal('login');
+
+    return;
+  }
+
+  area.innerHTML=`
+<div class="user-profile">
+
+<button
+class="user-btn"
+id="userProfileBtn">
+${esc(CURRENT_USER.display_name||CURRENT_USER.username||'Minha conta')} ▾
+</button>
+
+<div
+class="user-menu"
+id="userMenu"
+hidden>
+
+<button id="profileBtn">
+Meu perfil
+</button>
+
+<button id="logoutBtn">
+Sair
+</button>
+
+</div>
+
+</div>
+`;
+
+  $('#userProfileBtn',area).onclick=()=>{
+    $('#userMenu',area).toggleAttribute('hidden');
+  };
+
+  $('#logoutBtn',area).onclick=async()=>{
+
+    try{
+
+      await userApi(
+        '/api/user/logout',
+        {method:'POST'}
+      );
+
+    }catch{}
+
+    CURRENT_USER=null;
+
+    updateUserUI();
+  };
+
+  $('#profileBtn',area).onclick=
+    ()=>showProfile();
+}
+
+function showProfile(){
+
+  const old=document.getElementById('userModal');
+
+  if(old)old.remove();
+
+  const m=document.createElement('div');
+
+  m.className='user-modal';
+
+  m.id='userModal';
+
+  m.innerHTML=`
+<div class="user-box">
+
+<button class="user-close">
+×
+</button>
+
+<h2>Meu perfil</h2>
+
+<p>
+<strong>
+${esc(CURRENT_USER?.display_name||'')}
+</strong>
+<br>
+@${esc(CURRENT_USER?.username||'')}
+<br>
+${esc(CURRENT_USER?.email||'')}
+</p>
+
+<button
+class="action-btn primary"
+id="favProfile">
+Ver favoritos
+</button>
+
+</div>
+`;
+
+  document.body.appendChild(m);
+
+  m.querySelector('.user-close').onclick=
+    ()=>m.remove();
+
+  $('#favProfile',m).onclick=async()=>{
+
+    try{
+
+      const d=
+        await userApi('/api/user/favorites');
+
+      alert(
+        'Você tem '+
+        ((d.favorites||[]).length)+
+        ' favorito(s).'
+      );
+
+    }catch(e){
+
+      alert(e.message);
+    }
+  };
+}
+
+async function trackHistory(id){
+
+  if(!CURRENT_USER||!id)return;
+
+  try{
+
+    await userApi(
+      '/api/user/history',
+      {
+        method:'POST',
+        body:JSON.stringify({
+          content_id:String(id)
+        })
+      }
+    );
+
+  }catch{}
+}
+
+function initUserUI(){
+
+  userStyles();
+
+  loadUser();
+}
+
+document.addEventListener(
+  'DOMContentLoaded',
+  ()=>{
+    initMobileNav();
+
+    initUserUI();
+
+    const p=document.body.dataset.page;
+
+    if(p==='home')initHome();
+
+    if(p==='catalog')initCatalog();
+
+    if(p==='item')initItem();
+  }
+);
